@@ -19,10 +19,10 @@ int height = 600;
 constexpr int MAX_ITERATIONS = 100;
 constexpr uint32_t BG = 0x332222FF;
 constexpr uint32_t FG = 0xFF5555FF;
-double realx_min = -2.5;
-double realx_max = 1.0;
-double realy_min = -3.5/2;
-double realy_max = 3.5/2;
+float realx_min = -2.5;
+float realx_max = 1.0;
+float realy_min = -3.5/2;
+float realy_max = 3.5/2;
 bool is_mouse_down = false;
 bool is_mouse_just_released = false;
 int mouse_down_x = 0;
@@ -30,20 +30,20 @@ int mouse_down_y = 0;
 int mouse_x = 0;
 int mouse_y = 0;
 
-std::vector<double> real_coords;
-std::vector<double> imag_coords;
+std::vector<float> real_coords;
+std::vector<float> imag_coords;
 
-void compute_vectors(int width, int height, double min_x, double max_x, double min_y, double max_y) {
+void compute_vectors(int width, int height, float min_x, float max_x, float min_y, float max_y) {
      real_coords.clear();
      imag_coords.clear();
 
      real_coords.resize(width);
      imag_coords.resize(height);
      for (int x = 0; x < width; x++) {
-          real_coords[x] = (double)x / (double)width * (max_x - min_x) + min_x;
+          real_coords[x] = (float)x / (float)width * (max_x - min_x) + min_x;
      }
      for (int y = 0; y < height; y++) {
-          imag_coords[y] = (double)y / (double)height * (max_y - min_y) + min_y;
+          imag_coords[y] = (float)y / (float)height * (max_y - min_y) + min_y;
      }
 }
 
@@ -93,32 +93,32 @@ static int sdl_fillrect(int x, int y, int w, int h, int color) {
      return SDL_RenderFillRect(sdl_renderer, &rect);
 }
 
-double screen_to_real(int n, int limit, double min, double max) {
-     return (double)n / (double)limit * (max - min) + min;
+float screen_to_real(int n, int limit, float min, float max) {
+     return (float)n / (float)limit * (max - min) + min;
 }
 
 void compute_mandelbrot(int startx, int endx, int height, int pitch, uint32_t *pixel_buffer) {
      for (int x = startx; x < endx; x++) {
           for (int y = 0; y < height; y++) {
-               double a = real_coords[x];
-               double b = imag_coords[y];
-               double ca = a;
-               double cb = b;
+               float a = real_coords[x];
+               float b = imag_coords[y];
+               float ca = a;
+               float cb = b;
                int n = 0;
 
                if ((a + 1) * (a + 1) + b * b < 0.0625) {
                     n = MAX_ITERATIONS;
                }
                while (a*a + b*b < 4 && n < MAX_ITERATIONS) {
-                    double aa = a*a - b*b;
-                    double bb = 2 * a * b;
+                    float aa = a*a - b*b;
+                    float bb = 2 * a * b;
                     a = aa + ca;
                     b = bb + cb;
                     n++;
                }
 
                // Colorize the pixel based of the const FG and BG
-               int bright = 255 - (int)((double)n / (double)MAX_ITERATIONS * 255);
+               int bright = 255 - (int)((float)n / (float)MAX_ITERATIONS * 255);
                int R = (bright * ((FG >> 24) & 0xFF) + (255 - bright) * ((BG >> 24) & 0xFF)) / 255;
                int G = (bright * ((FG >> 16) & 0xFF) + (255 - bright) * ((BG >> 16) & 0xFF)) / 255;
                int B = (bright * ((FG >> 8) & 0xFF) + (255 - bright) * ((BG >> 8) & 0xFF)) / 255;
@@ -169,13 +169,14 @@ int main(int argc, char* argv[]) {
           }
 
           auto end = std::chrono::high_resolution_clock::now();
-          std::chrono::duration<double> elapsed = end - start;
+          std::chrono::duration<float> elapsed = end - start;
           SDL_Log("Elapsed time: %f", elapsed.count() * 1000);
 
           SDL_UnlockTexture(sdl_texture);
           SDL_RenderClear(sdl_renderer);
           SDL_RenderCopy(sdl_renderer, sdl_texture, nullptr, nullptr);
 
+          float windowRatio = (float)width / height;
           if (is_mouse_down) {
                // Draw a rectangle showing the area selected by the user
                int x = mouse_down_x;
@@ -183,24 +184,24 @@ int main(int argc, char* argv[]) {
                int w = mouse_x - mouse_down_x;
                int h = mouse_y - mouse_down_y;
                int side = std::max(std::abs(w), std::abs(h));
-               sdl_fillrect(x, y, side * (sign(w)), side * (sign(h)), 0x4444DD22);
+               sdl_fillrect(x, y, side * (sign(w)), side * (sign(h)) / windowRatio, 0x4444DD22);
           }
 
           if (is_mouse_just_released) {
                int w = mouse_x - mouse_down_x;
                int h = mouse_y - mouse_down_y;
                int side = std::max(std::abs(w), std::abs(h));
-               double oldx_min = realx_min;
-               double oldx_max = realx_max;
+               float oldx_min = realx_min;
+               float oldx_max = realx_max;
                realx_min = screen_to_real(mouse_down_x, width, oldx_min, oldx_max);
                realx_max = screen_to_real(mouse_down_x + side * sign(w), width, oldx_min, oldx_max);
                if (realx_min > realx_max) {
                     std::swap(realx_min, realx_max);
                }
-               double oldy_min = realy_min;
-               double oldy_max = realy_max;
+               float oldy_min = realy_min;
+               float oldy_max = realy_max;
                realy_min = screen_to_real(mouse_down_y, height, oldy_min, oldy_max);
-               realy_max = screen_to_real(mouse_down_y + side * sign(h), height, oldy_min, oldy_max);
+               realy_max = screen_to_real(mouse_down_y + side * sign(h) / windowRatio, height, oldy_min, oldy_max);
                if (realy_min > realy_max) {
                     std::swap(realy_min, realy_max);
                }
