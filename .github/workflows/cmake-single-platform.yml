@@ -1,5 +1,4 @@
-
-name: Build Mandelbrot Project
+name: Build and Release Mandelbrot Project
 
 on:
   push:
@@ -17,7 +16,7 @@ jobs:
 
     - name: Install system dependencies
       run: sudo apt-get update && sudo apt-get install -y autoconf automake libtool pkg-config libltdl-dev
-    
+
     - name: Install dependencies (vcpkg + SDL2)
       run: |
         git clone https://github.com/microsoft/vcpkg.git
@@ -29,3 +28,31 @@ jobs:
 
     - name: Build
       run: cmake --build build
+
+    - name: Archive build
+      run: |
+        mkdir -p release
+        cp build/untitled release/
+        cd release
+        zip -r MandelbrotBuild.zip .
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ github.run_number }}
+        release_name: Release v${{ github.run_number }}
+        draft: false
+        prerelease: false
+
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./release/MandelbrotBuild.zip
+        asset_name: MandelbrotBuild.zip
+        asset_content_type: application/zip
