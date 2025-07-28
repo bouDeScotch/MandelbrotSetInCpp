@@ -15,6 +15,9 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    - name: Install system dependencies
+      run: sudo apt-get update && sudo apt-get install -y autoconf automake libtool pkg-config libltdl-dev
+    
     - name: Install dependencies (vcpkg + SDL2)
       run: |
         git clone https://github.com/microsoft/vcpkg.git
