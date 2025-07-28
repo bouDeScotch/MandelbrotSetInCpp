@@ -1,3 +1,0 @@
-/home/boudescout/projects/MandelbrotSetInCpp/build/CMakeFiles/untitled.dir
-/home/boudescout/projects/MandelbrotSetInCpp/build/CMakeFiles/edit_cache.dir
-/home/boudescout/projects/MandelbrotSetInCpp/build/CMakeFiles/rebuild_cache.dir
