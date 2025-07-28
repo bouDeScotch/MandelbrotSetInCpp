@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/boudescout/projects/MandelbrotSetInCpp/build/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

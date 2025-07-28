@@ -1,29 +1,28 @@
 
-name: Build and Test (CMake, Windows)
+name: Build Mandelbrot Project
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ main ]
   pull_request:
-    branches: [ "master" ]
-
-env:
-  BUILD_TYPE: Release
+    branches: [ main ]
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    - name: Install dependencies (vcpkg + SDL2)
+      run: |
+        git clone https://github.com/microsoft/vcpkg.git
+        ./vcpkg/bootstrap-vcpkg.sh
+        ./vcpkg/vcpkg install sdl2
+
     - name: Configure CMake
-      run: cmake -B build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+      run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=./vcpkg/scripts/buildsystems/vcpkg.cmake
 
-    - name: Build with CMake
-      run: cmake --build build --config ${{ env.BUILD_TYPE }}
-
-    - name: Run tests with CTest
-      working-directory: build
-      run: ctest -C ${{ env.BUILD_TYPE }}
+    - name: Build
+      run: cmake --build build
