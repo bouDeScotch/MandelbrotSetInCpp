@@ -26,11 +26,10 @@ jobs:
         cd external
         git clone --depth=1 https://github.com/Dav1dde/glad.git
         cd glad
-        python3 -m glad --api gl:core=3.3 --out-path ../glad --generator=c
+        python3 -m glad c --api gl:core=3.3 --out-path ../glad
         cd ..
         rm -rf glad/.git
         echo "GLAD installed in external/glad"
-
 
     - name: Configure CMake
       run: |
