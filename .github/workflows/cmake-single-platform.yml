@@ -23,10 +23,13 @@ jobs:
       run: |
         mkdir -p external
         cd external
-        # Télécharge la version OpenGL 3.3 Core Profile en C/C++
-        curl -L "https://glad.dav1d.de/generated/glad.zip?spec=gl&api=gl%3D3.3&profile=core&language=c&loader=on" -o glad.zip
-        unzip glad.zip -d glad
-        rm glad.zip
+        git clone --depth=1 https://github.com/Dav1dde/glad.git
+        cd glad
+        python -m glad --generator=c --out-path=glad --api gl=3.3 --profile=core --extensions=""
+        mv glad ../glad_generated
+        cd ..
+        rm -rf glad
+        mv glad_generated glad
         echo "GLAD installed in external/glad"
 
     - name: Configure CMake
