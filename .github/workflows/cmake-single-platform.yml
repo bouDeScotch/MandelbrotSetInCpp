@@ -14,29 +14,37 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Install system dependencies
-      run: sudo apt-get update && sudo apt-get install -y autoconf automake libtool pkg-config libltdl-dev
-
-    - name: Install dependencies (vcpkg + SDL2)
+    - name: Install SDL2
       run: |
-        git clone https://github.com/microsoft/vcpkg.git
-        ./vcpkg/bootstrap-vcpkg.sh
-        ./vcpkg/vcpkg install sdl2
+        sudo apt-get update
+        sudo apt-get install -y libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev
+
+    - name: Install GLAD
+      run: |
+        mkdir -p external
+        cd external
+        # Télécharge la version OpenGL 3.3 Core Profile en C/C++
+        curl -L "https://glad.dav1d.de/generated/glad.zip?spec=gl&api=gl%3D3.3&profile=core&language=c&loader=on" -o glad.zip
+        unzip glad.zip -d glad
+        rm glad.zip
+        echo "GLAD installed in external/glad"
 
     - name: Configure CMake
-      run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=./vcpkg/scripts/buildsystems/vcpkg.cmake
+      run: |
+        cmake -B build -S .
 
-    - name: Build
-      run: cmake --build build
+    - name: Build project
+      run: |
+        cmake --build build --parallel $(nproc)
 
-    - name: Archive build
+    - name: Package release
       run: |
         mkdir -p release
-        cp build/untitled release/
+        cp build/untitled release/Mandelbrot
         cd release
         zip -r MandelbrotBuild.zip .
 
-    - name: Create Release
+    - name: Create GitHub Release
       id: create_release
       uses: actions/create-release@v1
       env:
