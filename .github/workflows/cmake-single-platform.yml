@@ -21,16 +21,16 @@ jobs:
 
     - name: Install GLAD
       run: |
+        sudo apt-get install -y python3
         mkdir -p external
         cd external
         git clone --depth=1 https://github.com/Dav1dde/glad.git
         cd glad
-        python -m glad --generator=c --out-path=glad --api gl=3.3 --profile=core --extensions=""
-        mv glad ../glad_generated
+        python3 -m glad --api gl:core=3.3 --out-path ../glad --generator=c
         cd ..
-        rm -rf glad
-        mv glad_generated glad
+        rm -rf glad/.git
         echo "GLAD installed in external/glad"
+
 
     - name: Configure CMake
       run: |
