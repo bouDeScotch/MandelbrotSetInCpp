@@ -13,3 +13,9 @@ find_package(SDL2 CONFIG REQUIRED)
 
 # Lie SDL2 à ton exécutable
 target_link_libraries(untitled PRIVATE SDL2::SDL2 SDL2::SDL2main)
+
+target_compile_options(untitled PRIVATE
+    -O3
+    -march=native
+    -ffast-math
+)

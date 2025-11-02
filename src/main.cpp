@@ -1,7 +1,9 @@
 #include "SDL2/SDL.h"
 #include "SDL2/SDL_main.h"
+#include <SDL2/SDL_video.h>
 #include <algorithm>
 #include <iostream>
+#include <omp.h>
 #include <string>
 #include <thread>
 #include <vector>
@@ -141,7 +143,7 @@ float screen_to_real(int n, int limit, float min, float max) {
 void compute_mandelbrot(int startx, int endx, int height, int pitch,
                         uint32_t *pixel_buffer) {
   for (int x = startx; x < endx; x++) {
-    for (int y = 0; y < height; y++) {
+    for (int y = 0; y < height; ++y) {
       float a = real_coords[x];
       float b = imag_coords[y];
       float ca = a;
@@ -166,7 +168,7 @@ void compute_mandelbrot(int startx, int endx, int height, int pitch,
       }
 
       // Colorize the pixel based of the const FG and BG
-      int bright = 255 - (int)((float)n / (float)maxIter * 255);
+      int bright = 255 - (int)((float)n / maxIter * 255);
       int R = (bright * ((FG >> 24) & 0xFF) +
                (255 - bright) * ((BG >> 24) & 0xFF)) /
               255;
@@ -186,12 +188,16 @@ int sign(int x) { return (x > 0) - (x < 0); }
 
 int main(int argc, char *argv[]) {
   SDL_Init(SDL_INIT_VIDEO);
-  sdl_window =
-      SDL_CreateWindow("Hello World", SDL_WINDOWPOS_CENTERED,
-                       SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_RESIZABLE);
+  sdl_window = SDL_CreateWindow("Hello World", SDL_WINDOWPOS_CENTERED,
+                                SDL_WINDOWPOS_CENTERED, 800, 600,
+                                SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
   sdl_renderer = SDL_CreateRenderer(sdl_window, -1, SDL_RENDERER_PRESENTVSYNC);
   sdl_texture = SDL_CreateTexture(sdl_renderer, SDL_PIXELFORMAT_RGBA8888,
                                   SDL_TEXTUREACCESS_STREAMING, width, height);
+
+  SDL_GLContext gl_context = SDL_GL_CreateContext(sdl_window);
+  SDL_GL_SetSwapInterval(0); // Enable/disable vsync
+  GLuint vao, vbo;
 
   compute_vectors(width, height, realx_min, realx_max, realy_min, realy_max);
 
@@ -216,16 +222,11 @@ int main(int argc, char *argv[]) {
     if (!frame_computed) {
       auto start = std::chrono::high_resolution_clock::now();
       auto *pixel_buffer = static_cast<uint32_t *>(pixels);
-      std::vector<std::thread> threads;
-      for (int i = 0; i < num_threads; i++) {
-        int startx = i * width / num_threads;
-        int endx = (i + 1) * width / num_threads;
-        threads.push_back(std::thread(compute_mandelbrot, startx, endx, height,
-                                      pitch, pixel_buffer));
-      }
-
-      for (auto &thread : threads) {
-        thread.join();
+      const int block_size = 16;
+#pragma omp parallel for schedule(dynamic, 16)
+      for (int i = 0; i < width; i += block_size) {
+        compute_mandelbrot(i, std::min(i + block_size, width), height, pitch,
+                           pixel_buffer);
       }
 
       auto end = std::chrono::high_resolution_clock::now();
@@ -282,6 +283,6 @@ int main(int argc, char *argv[]) {
 
   printf("Average frame time: %.3f ms\n", (total_time / frame_count) * 1000.0f);
   printf("FPS: %.2f\n", (float)frame_count / total_time);
-  printf("Number of threads: %d\n", num_threads);
+  // printf("Number of threads: %d\n", num_threads);
   return 0;
 }
