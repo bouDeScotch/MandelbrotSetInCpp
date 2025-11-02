@@ -14,28 +14,23 @@ Assurez-vous d'avoir installé les bibliothèques suivantes :
 ### Instructions
 
 1. Clonez le dépôt :
-    ```sh
-    git clone https://github.com/bouDeScotch/MandelbrotSetInCpp.git
-    cd MandelbrotSetInCpp
-    ```
 
-2. Installez les dépendances :
-    - **Sur Ubuntu/Debian** :
-        ```sh
-        sudo apt-get install libsdl2-dev
-        ```
-    - **Sur macOS** :
-        ```sh
-        brew install sdl2
-        ```
-    - **Sur Windows** :
-      Téléchargez et installez SDL2 depuis [le site officiel](https://www.libsdl.org/download-2.0.php).
+   ```bash
+   gh repo clone boudescotch/MandelbrotSetInCpp
+   ```
 
-3. Compilez et exécutez le projet :
-    ```sh
-    mkdir build
-    cd build
-    cmake ..
-    make
-    ./MandelbrotSetInCpp
-    ```
+2. Compiler le projet :
+
+   ```bash
+   mkdir build
+   cd build
+   cmake ..
+   make
+   ```
+
+3. Exécutez le programme :
+
+   ```bash
+   ./MandelbrotSet
+   ```
+
