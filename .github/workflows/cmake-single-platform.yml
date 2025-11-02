@@ -19,14 +19,15 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev
 
-    
     - name: Install GLAD
       run: |
         sudo apt-get install -y python3-pip
-        pip install glad2 --break-system-packages
+        pip install --user glad2
+        export PYTHONPATH="$HOME/.local/lib/python3.12/site-packages"
         mkdir -p external
         python3 -m glad2 c --api gl:core=3.3 --out-path external/glad
         echo "GLAD installed in external/glad"
+
 
     - name: Configure CMake
       run: |
